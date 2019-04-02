@@ -10,6 +10,7 @@ try {
     const tokenRegex = tl.getInput('tokenRegex', true);
     const replaceTokens = tl.getInput('replaceTokenList', true);
     const replaceTokensArray = replaceTokens.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
+    const throwExceptionifNotMapped = tl.getBoolInput('throwExceptionifNotMapped');
     
     var tokenDictionary = {};
 
@@ -48,6 +49,8 @@ try {
         tl.setResult(tl.TaskResult.Failed, msg);
     }
 
+    var somethingNotMapped = false;
+    
     for (var file of files) {
         console.log(`Starting token replacement in [${file}]`);
 
@@ -61,14 +64,21 @@ try {
                 return token;
             } 
             
-            console.warn(`No secret found for token [${identifier}].`);
+            somethingNotMapped = true;
+
+            tl.warning(`No secret found for token [${identifier}].`);
             return `__${identifier}__`;
         })
 
         //sh.chmod(666, file);
         fs.writeFileSync(file, newContents);
     }
-} catch (error) {
-    console.log(error);    
-    tl.exit(1);
+
+    if(throwExceptionifNotMapped && somethingNotMapped) {
+        tl.setResult(tl.TaskResult.Failed, "Not all tokens are replaced! Please check the replace token build/release task.");
+    }
+} 
+catch (error) {
+    console.error(error);    
+    tl.setResult(tl.TaskResult.Failed, error);
 }

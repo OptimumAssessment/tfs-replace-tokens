@@ -14,17 +14,10 @@
   "version": {
     "Major": "1",
     "Minor": "0",
-    "Patch": "13"
+    "Patch": "16"
   },
   "minimumAgentVersion": "1.95.0",
   "instanceNameFormat": "Replace Tokens $(message)",
-  "groups": [
-    {
-      "name": "advanced",
-      "displayName": "Advanced",
-      "isExpanded": false
-    }
-  ],
   "inputs": [
     {
       "name": "sourcePath",
@@ -47,7 +40,6 @@
       "type": "string",
       "label": "Token Regex",
       "defaultValue": "__(\\w+)__",
-      "groupName": "advanced",
       "required": true,
       "helpMarkDown": "Regex to use for token replacement. Must include a group match."
     },
@@ -56,8 +48,13 @@
       "type": "multiLine",
       "label": "Tokens to Replace",
       "defaultValue": "",
-      "groupName": "advanced",
       "helpMarkDown": "For tokens need to be replaced with the value of a build/release variable, variable from a variable group of variable comming from Azure keyvault. The should be 1 key/value pair per row, which can be specified using the following format: key1:$(value1)"
+    },
+    {
+      "name": "throwExceptionifNotMapped",
+      "type": "boolean",
+      "label": "Throw exception if not mapped/replaced?",
+      "helpMarkDown": "Throw exception if there is a token which is not mapped/replaced"
     }
   ],
   "execution": {
