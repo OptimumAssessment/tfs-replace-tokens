@@ -60,6 +60,13 @@ try {
         var newContents = contents.replace(reg, (all,identifier) => {
             const token = tokenDictionary[identifier];
             if(token !== undefined) {
+                if(/^\$\(\w+\)/.test(token)) {
+                    somethingNotMapped = true;
+            
+                    tl.warning(`No variable found for token [${identifier}].`);
+                    return `__${identifier}__`;
+                }
+
                 console.log(`Replace token [${identifier}] with secret value.`);
                 return token;
             } 
