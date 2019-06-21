@@ -86,11 +86,15 @@ try {
     }
 
     //CHECK IF THERE ARE TOKENS IN THE RELEASE PIPELINE, WHICH ARE NOT IN THE JSON FILES. 
-    replaceTokensArray.forEach(replaceToken => {
-        if(!tokenSetJsonSettingFiles.has(replaceToken.key)) {
-            tl.warning(`Replace token property [${replaceToken.key}] doesn't exists in any json property file. Could be cleaned up!?`);
+    tokenDictionary.forEach(token => {
+        if(!tokenSetJsonSettingFiles.has(token.key)) {
+            tl.warning(`Replace token property [${token.key}] doesn't exists in any json property file. Could be cleaned up!?`);
         }
     });
+
+    if(throwExceptionifNotMapped && somethingNotMapped) {
+        tl.setResult(tl.TaskResult.Failed, "Not all tokens are replaced! Please check the replace token build/release task.");
+    }
 } 
 catch (error) {
     console.error(error);    
