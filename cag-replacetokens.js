@@ -13,6 +13,7 @@ try {
     const throwExceptionifNotMapped = tl.getBoolInput('throwExceptionifNotMapped');
     
     var tokenDictionary = {};
+    var tokenSetJsonSettingFiles = new Set;
 
     // clear leading and trailing quotes for paths with spaces
     sourcePath = sourcePath.replace(/"/g, "");
@@ -58,6 +59,9 @@ try {
         const reg = new RegExp(tokenRegex, "g");
                 
         var newContents = contents.replace(reg, (all,identifier) => {
+            //ADD ALL JSON TOKENS TO A LIST, SO WE CAN FINALLY CHECK IF BUILD TASK CONTAINS KEYS WHICH DOESN'T EXIST IN ANY FILE.
+            tokenSetJsonSettingFiles.add(identifier);
+
             const token = tokenDictionary[identifier];
             if(token !== undefined) {
                 if(/^\$\(\w+\)/.test(token)) {
@@ -81,9 +85,12 @@ try {
         fs.writeFileSync(file, newContents);
     }
 
-    if(throwExceptionifNotMapped && somethingNotMapped) {
-        tl.setResult(tl.TaskResult.Failed, "Not all tokens are replaced! Please check the replace token build/release task.");
-    }
+    //CHECK IF THERE ARE TOKENS IN THE RELEASE PIPELINE, WHICH ARE NOT IN THE JSON FILES. 
+    replaceTokensArray.forEach(replaceToken => {
+        if(!tokenSetJsonSettingFiles.has(replaceToken.key)) {
+            tl.warning(`Replace token property [${replaceToken.key}] doesn't exists in any json property file. Could be cleaned up!?`);
+        }
+    });
 } 
 catch (error) {
     console.error(error);    
