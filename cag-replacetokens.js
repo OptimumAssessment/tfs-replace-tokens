@@ -1,6 +1,4 @@
-const path = require('path');
 const tl = require('azure-pipelines-task-lib');
-const sh = require('shelljs');
 const fs = require('fs');
 const os = require('os');
 
@@ -53,48 +51,42 @@ try {
     var somethingNotMapped = false;
     
     for (var file of files) {
-        console.log(`Starting token replacement in [${file}]`);
-
         const contents = fs.readFileSync(file).toString();
         const reg = new RegExp(tokenRegex, "g");
                 
         var newContents = contents.replace(reg, (all,identifier) => {
-            //ADD ALL JSON TOKENS TO A LIST, SO WE CAN FINALLY CHECK IF BUILD TASK CONTAINS KEYS WHICH DOESN'T EXIST IN ANY FILE.
+            // add all tokens to a list, so we can finally check if the build task contains keys which doesn't exists in any file.
             tokenSetJsonSettingFiles.add(identifier);
 
             const token = tokenDictionary[identifier];
             if(token !== undefined) {
                 if(/^\$\(\w+\)/.test(token)) {
+                    tl.warning(`No variable found for token [${identifier}]. Or you should create the variable in any variable group/key vault, or remove this mapping.`);
                     somethingNotMapped = true;
-            
-                    tl.warning(`No variable found for token [${identifier}].`);
                     return `__${identifier}__`;
                 }
 
-                console.log(`Replace token [${identifier}] with secret value.`);
+                console.log(`Replace token [${identifier}] with a value.`);
                 return token;
             } 
             
+            tl.warning(`Token [${identifier}] found in file, but not defined in build/release task. Please add a mapping for it.`);
             somethingNotMapped = true;
-
-            tl.warning(`No secret found for token [${identifier}].`);
             return `__${identifier}__`;
         })
 
-        //sh.chmod(666, file);
         fs.writeFileSync(file, newContents);
     }
 
-    //CHECK IF THERE ARE TOKENS IN THE RELEASE PIPELINE, WHICH ARE NOT IN THE JSON FILES. 
     for(var key in tokenDictionary) {
         if(!tokenSetJsonSettingFiles.has(key)) {
-            tl.warning(`Replace token property [${key}] doesn't exists in any json property file. Could be cleaned up!?`);
+            tl.warning(`Variable [${key}] doesn't exists in any file, please remove it from the build/release task`);
             somethingNotMapped = true;
         }
     }
 
     if(throwExceptionifNotMapped && somethingNotMapped) {
-        tl.setResult(tl.TaskResult.Failed, "Not all tokens are replaced! Please check the replace token build/release task.");
+        tl.setResult(tl.TaskResult.Failed, "There are some errors, please check the other output comments.");
     }
 } 
 catch (error) {
