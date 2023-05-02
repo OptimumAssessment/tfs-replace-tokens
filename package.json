@@ -4,7 +4,7 @@
   "description": "Build/Release task for replacing tokens in specific files. Perfectly if you want to have full control of the replace process.",
   "main": "cag-replacetokens.js",
   "dependencies": {
-    "azure-pipelines-task-lib": "^2.7.7",
+    "azure-pipelines-task-lib": "^4.3.1",
     "debounce": "^1.2.0",
     "fs": "^0.0.1-security"
   },
